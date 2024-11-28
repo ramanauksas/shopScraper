@@ -132,7 +132,6 @@ class BarboraScraper:
 
         url_tuples = [url_tuple for url_tuple in all_url_tuples if url_tuple[0] not in set(existing_product_links)]
 
-        # [print(link) for link in self.hrefs]
         for url_tuple in url_tuples:
             url_id, url = url_tuple
             self.driver.get(url)
