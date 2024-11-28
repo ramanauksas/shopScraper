@@ -13,7 +13,7 @@ def initialize_webdriver():
 def run_data_scraping():
     driver, wait = initialize_webdriver()
     # scraper = BarboraScraper(driver, "https://barbora.lt/gerimai/alus/sviesusis-alus")
-    scraper = BarboraScraper(driver, "https://barbora.lt")
+    scraper = BarboraScraper(driver, "https://barbora.lt/gerimai/alus")
     # scraper = RimiScraper(driver, wait,"https://www.rimi.lt/e-parduotuve/lt/produktai/bakaleja/kruopos/grikiai/c/SH-2-6-36")
     # scraper = RimiScraper(driver, wait,"https://www.rimi.lt/e-parduotuve/lt/produktai/alkoholiniai-ir-nealkoholiniai-gerimai/alus/sviesus-alus/c/SH-1-1-4")
 

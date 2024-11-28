@@ -6,9 +6,16 @@ class BarboraProduct(Product):
     def __init__(self, driver):
         super().__init__(driver)
 
-    def fill(self):
+    def fill(self, url_id):
 
-        title_text_full = self.driver.find_element(By.CLASS_NAME, "b-product-info--title").text
+        # store
+        self.store = 1
+
+        try:
+            title_text_full = self.driver.find_element(By.CLASS_NAME, "b-product-info--title").text
+        except:
+            print("Produktas nerastas")
+            return None
         title_parts = title_text_full.split(",")
         # title
         self.title = title_parts[0]
@@ -17,16 +24,23 @@ class BarboraProduct(Product):
         self.size = title_parts[-1].split()[0]
 
         # unit
-        self.unit = title_parts[-1].split()[1]
+        try:
+            self.unit = title_parts[-1].split()[1]
+        except:
+            return None
+
 
         # property
         if len(title_parts)>2:
             self.property = ",".join(title_parts[1:-1])
 
         # brand
-        dt_element = self.driver.find_element(By.XPATH, "//dt[text()='Prekės ženklas:']")
-        self.brand = dt_element.find_element(By.XPATH, "following-sibling::dd").text
-
+        try:
+            dt_element = self.driver.find_element(By.XPATH, "//dt[text()='Prekės ženklas:']")
+            self.brand = dt_element.find_element(By.XPATH, "following-sibling::dd").text
+        except:
+            print("failed to determine product brand")
+            pass
         # price
         price_element = self.driver.find_element(By.ID, "fti-product-price--0")
         price_parts = price_element.find_elements(By.TAG_NAME, "span")
@@ -36,11 +50,13 @@ class BarboraProduct(Product):
 
         # category
         breadcrumb_items = self.driver.find_elements(By.CSS_SELECTOR, "ol.breadcrumb li span[itemprop='name']")
-        category_list = [item.text for item in breadcrumb_items]
-        self.category = category_list[1:]
+        category_list = [item.text for item in breadcrumb_items][1:]
+        self.save_category(category_list)
+        print(category_list)
+        print(self.category)
 
-        # store
-        self.store = 1
+
+        self.link = url_id
 
 
 

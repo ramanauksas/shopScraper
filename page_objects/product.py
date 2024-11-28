@@ -15,40 +15,52 @@ class Product:
         self.price = ""
         self.category = []
         self.store = ""
+        self.link = ""
         self.product_id = ""
 
-    def save_category(self):
+    def save_category(self, category_list):
         # Check if the category exists, if not, insert it and get its ID
         query = "SELECT id FROM `categories` WHERE `category1` = %s AND `category2` = %s AND `category3`= %s AND `store`= %s"
         cursor = self.db.conn.cursor()
-        cursor.execute(query, (*self.category, self.store))
-        result = cursor.fetchone()
+        if len(category_list) < 3:
+            if len(category_list) == 2:
+                category_list.append(category_list[1])
+            else:
+                print("uncategorized product. Not saving it.")
+                cursor.close()
+                return
+        print("save_category from save_category", category_list)
+        cursor.execute(query, (*category_list, self.store))
+        self.category = cursor.fetchone()[0]
+        print("cursor fetch all", cursor.fetchall())
+        cursor.close()
 
-        if result:
-            # Category exists, get the ID
-            self.category = result[0]
-        else:
-            # Category does not exist, insert it
-            query = "INSERT INTO `categories` (`category1`, `category2`, `category3`, `store`) VALUES (%s, %s, %s, %s)"
-            cursor.execute(query, (*self.category, self.store))
-            self.db.conn.commit()
-            # Get the newly inserted category ID
-            self.category = cursor.lastrowid
+
+        # if result:
+        #     # Category exists, get the ID
+        #     self.category = result[0]
+        # else:
+        #     # Category does not exist, insert it
+        #     query = "INSERT INTO `categories` (`category1`, `category2`, `category3`, `store`) VALUES (%s, %s, %s, %s)"
+        #     cursor.execute(query, (*self.category, self.store))
+        #     self.db.conn.commit()
+        #     # Get the newly inserted category ID
+        #     self.category = cursor.lastrowid
 
     def save(self):
-        # Check if the product already exists based on title, brand, size, unit, property, category, and store
+        # Check if the product already exists
         check_query = """
             SELECT `id`, `price` 
             FROM `product` 
-            WHERE `title` = %s AND `brand` = %s AND `size` = %s AND `unit` = %s AND `property` = %s 
-            AND `category` = %s AND `store` = %s
+            WHERE `link` = %s
         """
         cursor = self.db.conn.cursor()
-        cursor.execute(check_query,
-                       (self.title, self.brand, self.size, self.unit, self.property, self.category, self.store))
+        cursor.execute(check_query, (self.link,))
         existing_product = cursor.fetchone()
+        print("existing product", existing_product)
 
         if existing_product:
+            print("product already exists; checking price change")
             # If the product exists, check if the price has changed
             product_id = existing_product[0]
             existing_price = existing_product[1]
@@ -72,18 +84,19 @@ class Product:
         else:
             # If the product doesn't exist, insert a new one
             insert_query = """
-                INSERT INTO `product`(`title`, `brand`, `price`, `size`, `unit`, `property`, `category`, `store`) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO `product`(`title`, `brand`, `price`, `size`, `unit`, `property`, `category`, `link`, `store`) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
+            print(self.title, self.brand, self.price, self.size, self.unit, self.property, self.category, self.link, self.store)
             cursor.execute(insert_query, (
-            self.title, self.brand, self.price, self.size, self.unit, self.property, self.category, self.store))
+            self.title, self.brand, self.price, self.size, self.unit, self.property, self.category, self.link, self.store))
             self.db.conn.commit()
             self.product_id = cursor.lastrowid
             self.save_price_history()
             print(f"Inserted new product with ID {self.product_id} and logged price")
 
         cursor.close()
-        self.db.close()
+
 
     def save_price_history(self):
         query = "INSERT INTO `prices`(`product`, `price`, `date`) VALUES (%s, %s, %s)"
